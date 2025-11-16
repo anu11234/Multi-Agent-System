@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Historical Trends - Support Insight Analyzer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-info text-white mb-4">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-chart-line"></i> Historical Trends Dashboard
+                </h1>
+                <p class="card-text">Analyze patterns and trends over time with comprehensive historical data</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ analyses|length }}</h3>
+                <p>Total Analyses</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ metrics.tickets_processed }}</h3>
+                <p>Tickets Processed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ metrics.active_agents }}</h3>
+                <p>Active Agents</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">{{ metrics.customer_satisfaction }}%</h3>
+                <p>Satisfaction Rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Past Analyses -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Recent Analyses</h5>
+            </div>
+            <div class="card-body">
+                {% if analyses %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Analysis ID</th>
+                                <th>Date</th>
+                                <th>Tickets</th>
+                                <th>Sentiment</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for analysis in analyses|reverse %}
+                            <tr>
+                                <td><strong>{{ analysis.id }}</strong></td>
+                                <td>{{ analysis.timestamp[:16].replace('T', ' ') }}</td>
+                                <td>{{ analysis.tickets_analyzed }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ analysis.sentiment_analysis.total_positive }}</span>
+                                    <span class="badge bg-danger">{{ analysis.sentiment_analysis.total_negative }}</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewAnalysis({{ loop.index0 }})">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No historical analyses yet</h5>
+                    <p class="text-muted">Run analyses from the Real-time Analysis page to build historical data</p>
+                    <a href="/real-time-analysis" class="btn btn-primary">
+                        <i class="fas fa-bolt"></i> Run First Analysis
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Charts -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Sentiment Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="sentimentTrendChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-tachometer-alt"></i> Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Detail Modal -->
+<div class="modal fade" id="analysisDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Analysis Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="analysisDetailContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sample data for charts - in a real app, this would come from the backend
+const analyses = [
+    {% for analysis in analyses %}
+    {
+        id: "{{ analysis.id }}",
+        timestamp: "{{ analysis.timestamp }}",
+        tickets_analyzed: {{ analysis.tickets_analyzed }},
+        positive: {{ analysis.sentiment_analysis.total_positive }},
+        negative: {{ analysis.sentiment_analysis.total_negative }},
+        neutral: {{ analysis.sentiment_analysis.total_neutral }},
+        date: "{{ analysis.timestamp[:10] }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Initialize charts if we have data
+if (analyses.length > 0) {
+    initializeTrendCharts();
+}
+
+function initializeTrendCharts() {
+    // Sentiment Trend Chart
+    const sentimentCtx = document.getElementById('sentimentTrendChart').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'line',
+        data: {
+            labels: analyses.map(a => a.date),
+            datasets: [
+                {
+                    label: 'Positive Sentiment',
+                    data: analyses.map(a => a.positive),
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Negative Sentiment',
+                    data: analyses.map(a => a.negative),
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Performance Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: analyses.map(a => a.date),
+            datasets: [{
+                label: 'Tickets Analyzed',
+                data: analyses.map(a => a.tickets_analyzed),
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function viewAnalysis(analysisIndex) {
+    const analysis = analyses[analysisIndex];
+    const modalContent = document.getElementById('analysisDetailContent');
+    
+    let html = `
+        <div class="alert alert-info">
+            <strong>Analysis ID:</strong> ${analysis.id} | 
+            <strong>Date:</strong> ${analysis.timestamp.replace('T', ' ').substring(0, 16)} |
+            <strong>Tickets Analyzed:</strong> ${analysis.tickets_analyzed}
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6>Sentiment Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="detailSentimentChart" width="200" height="200"></canvas>
+                        <div class="mt-2 text-center">
+                            <span class="badge bg-success mx-1">Positive: ${analysis.positive}</span>
+                            <span class="badge bg-info mx-1">Neutral: ${analysis.neutral}</span>
+                            <span class="badge bg-danger mx-1">Negative: ${analysis.negative}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6>Analysis Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Sentiment Score:</strong> ${((analysis.positive - analysis.negative) / analysis.tickets_analyzed).toFixed(2)}</p>
+                        <p><strong>Positive Rate:</strong> ${((analysis.positive / analysis.tickets_analyzed) * 100).toFixed(1)}%</p>
+                        <p><strong>Analysis Period:</strong> Real-time snapshot</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <h6>Key Metrics</h6>
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h4>${analysis.positive}</h4>
+                            <small>Positive Cases</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h4>${analysis.negative}</h4>
+                            <small>Negative Cases</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h4>${analysis.tickets_analyzed}</h4>
+                            <small>Total Tickets</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalContent.innerHTML = html;
+    
+    // Initialize sentiment chart in modal
+    const sentimentCtx = document.getElementById('detailSentimentChart').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [analysis.positive, analysis.neutral, analysis.negative],
+                backgroundColor: ['#198754', '#0dcaf0', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+    
+    const modal = new bootstrap.Modal(document.getElementById('analysisDetailModal'));
+    modal.show();
+}
+
+// Auto-refresh historical data every 30 seconds
+setInterval(() => {
+    // In a real app, this would fetch new data from the server
+    console.log('Historical data refresh triggered');
+}, 30000);
+</script>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.badge {
+    font-size: 0.7em;
+}
+</style>
+{% endblock %}

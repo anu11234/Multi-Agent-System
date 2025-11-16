@@ -1,0 +1,171 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.stat-card {
+    padding: 1rem;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.navbar-brand {
+    font-weight: 700;
+}
+
+/* Analysis results styling */
+.insight-critical {
+    border-left: 4px solid #dc3545;
+}
+
+.insight-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.insight-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.insight-success {
+    border-left: 4px solid #198754;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Ticket status badges */
+.badge-critical {
+    background-color: #dc3545;
+}
+
+.badge-high {
+    background-color: #fd7e14;
+}
+
+.badge-medium {
+    background-color: #ffc107;
+}
+
+.badge-low {
+    background-color: #198754;
+}
+
+/* Add these styles to your existing style.css */
+
+.insight-critical {
+    border-left: 4px solid #dc3545;
+}
+
+.insight-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.insight-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.insight-success {
+    border-left: 4px solid #198754;
+}
+
+.stat-card {
+    padding: 1rem;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.loading-spinner {
+    color: #0d6efd;
+}
+
+.analysis-steps .step {
+    margin: 8px 0;
+    padding: 5px;
+}
+
+.progress {
+    height: 10px;
+}
+
+/* Badge colors for priorities */
+.badge-critical { background-color: #dc3545; }
+.badge-high { background-color: #fd7e14; }
+.badge-medium { background-color: #ffc107; color: #000; }
+.badge-low { background-color: #198754; }
+
+/* Table responsiveness */
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Modal enhancements */
+.modal-content {
+    border-radius: 0.5rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Chart container styling */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}

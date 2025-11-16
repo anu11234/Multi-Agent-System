@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% block title %}Live Analysis - Support Insight Analyzer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-bolt"></i> LIVE Real-time Analysis
+                </h1>
+                <p class="card-text">Dynamic multi-agent analysis with live data streaming</p>
+                <div class="live-indicator">
+                    <span class="badge bg-success blink">
+                        <i class="fas fa-circle"></i> LIVE
+                    </span>
+                    <small class="ms-2">Data updates every 5-15 seconds</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 id="ticketsProcessed">-</h3>
+                <p>Tickets Processed</p>
+                <small>Today</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+            <div class="card-body">
+                <h3 id="activeAgents">-</h3>
+                <p>Active Agents</p>
+                <small>Online</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 id="satisfactionScore">-</h3>
+                <p>Satisfaction Score</p>
+                <small>% Positive</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-danger text-white">
+            <div class="card-body">
+                <h3 id="avgResponseTime">-</h3>
+                <p>Avg Response Time</p>
+                <small>Minutes</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Control Panel -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-warning">
+                <h5><i class="fas fa-play-circle"></i> Analysis Control</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button id="runAnalysisBtn" class="btn btn-warning btn-lg" onclick="runAnalysis()">
+                        <i class="fas fa-brain"></i> Run AI Analysis
+                    </button>
+                    <button id="refreshDataBtn" class="btn btn-outline-primary" onclick="refreshLiveData()">
+                        <i class="fas fa-sync"></i> Refresh Live Data
+                    </button>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Live Data Stream</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="liveStreamToggle" checked>
+                        <label class="form-check-label" for="liveStreamToggle">Enable auto-refresh</label>
+                    </div>
+                    <small class="text-muted">Automatically updates every 10 seconds</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Trends -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Live Trends</h5>
+            </div>
+            <div class="card-body">
+                <div id="liveTrends">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading trends...</span>
+                        </div>
+                        <p class="mt-2">Loading live trends...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Tickets & Results -->
+    <div class="col-md-8">
+        <!-- Live Tickets -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-ticket-alt"></i> Live Support Tickets</h5>
+                <span class="badge bg-primary" id="ticketCount">-</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject</th>
+                                <th>Priority</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveTicketsBody">
+                            <!-- Dynamic content will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div id="analysisResults" style="display: none;">
+            <!-- Dynamic results will be loaded here -->
+        </div>
+
+        <!-- Real-time Alerts -->
+        <div class="card" id="alertsPanel" style="display: none;">
+            <div class="card-header bg-danger text-white">
+                <h5><i class="fas fa-exclamation-triangle"></i> Active Alerts</h5>
+            </div>
+            <div class="card-body" id="alertsBody">
+                <!-- Alerts will appear here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let liveUpdateInterval;
+let lastUpdateTime = Date.now();
+
+// Initialize live updates
+document.addEventListener('DOMContentLoaded', function() {
+    loadLiveData();
+    startLiveUpdates();
+    
+    // Set up live stream toggle
+    document.getElementById('liveStreamToggle').addEventListener('change', function() {
+        if (this.checked) {
+            startLiveUpdates();
+        } else {
+            stopLiveUpdates();
+        }
+    });
+});
+
+function startLiveUpdates() {
+    if (liveUpdateInterval) {
+        clearInterval(liveUpdateInterval);
+    }
+    liveUpdateInterval = setInterval(loadLiveData, 10000); // Update every 10 seconds
+}
+
+function stopLiveUpdates() {
+    if (liveUpdateInterval) {
+        clearInterval(liveUpdateInterval);
+        liveUpdateInterval = null;
+    }
+}
+
+function loadLiveData() {
+    fetch('/api/live-data')
+        .then(response => response.json())
+        .then(data => {
+            updateLiveMetrics(data);
+            updateLiveTickets(data.recent_tickets);
+            updateLiveTrends(data.trends);
+            lastUpdateTime = Date.now();
+        })
+        .catch(error => {
+            console.error('Error loading live data:', error);
+        });
+}
+
+function updateLiveMetrics(data) {
+    document.getElementById('ticketsProcessed').textContent = data.system_metrics.tickets_processed;
+    document.getElementById('activeAgents').textContent = data.system_metrics.active_agents;
+    document.getElementById('satisfactionScore').textContent = data.system_metrics.customer_satisfaction + '%';
+    document.getElementById('avgResponseTime').textContent = data.trends.response_metrics?.avg_response_time || '0';
+    document.getElementById('ticketCount').textContent = data.recent_tickets.length;
+}
+
+function updateLiveTickets(tickets) {
+    const tbody = document.getElementById('liveTicketsBody');
+    
+    if (tickets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No recent tickets</td></tr>';
+        return;
+    }
+    
+    let html = '';
+    tickets.forEach(ticket => {
+        const priorityClass = getPriorityClass(ticket.priority);
+        const timeAgo = getTimeAgo(ticket.created_date);
+        
+        html += `
+            <tr class="ticket-row">
+                <td><strong>${ticket.id}</strong></td>
+                <td>${ticket.subject}</td>
+                <td><span class="badge ${priorityClass}">${ticket.priority}</span></td>
+                <td>${ticket.category}</td>
+                <td><span class="badge bg-secondary">${ticket.status}</span></td>
+                <td><small class="text-muted">${timeAgo}</small></td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function updateLiveTrends(trends) {
+    const container = document.getElementById('liveTrends');
+    
+    let html = '';
+    
+    // Sentiment trend
+    const sentiment = trends.sentiment_trend || {};
+    html += `
+        <div class="mb-3">
+            <h6>Customer Sentiment</h6>
+            <div class="progress mb-1" style="height: 20px;">
+                <div class="progress-bar bg-success" style="width: ${(sentiment.positive || 0) * 10}%">${sentiment.positive || 0}</div>
+                <div class="progress-bar bg-info" style="width: ${(sentiment.neutral || 0) * 10}%">${sentiment.neutral || 0}</div>
+                <div class="progress-bar bg-danger" style="width: ${(sentiment.negative || 0) * 10}%">${sentiment.negative || 0}</div>
+            </div>
+            <small>Trend: <span class="badge bg-${getTrendBadgeClass(sentiment.trend)}">${sentiment.trend || 'Stable'}</span></small>
+        </div>
+    `;
+    
+    // Rising issues
+    const risingIssues = trends.rising_issues || [];
+    if (risingIssues.length > 0) {
+        html += `<h6>Rising Issues</h6>`;
+        risingIssues.forEach(issue => {
+            html += `
+                <div class="alert alert-warning py-2">
+                    <small><strong>${issue.category}</strong>: ${issue.frequency} cases (${issue.trend})</small>
+                </div>
+            `;
+        });
+    }
+    
+    // Response metrics
+    const response = trends.response_metrics || {};
+    html += `
+        <div class="mt-3">
+            <h6>Performance</h6>
+            <small>Avg Response: <strong>${response.avg_response_time || 0}m</strong></small><br>
+            <small>Resolution Rate: <strong>${response.resolution_rate || 0}%</strong></small>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function runAnalysis() {
+    const button = document.getElementById('runAnalysisBtn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> AI Analyzing...';
+    button.disabled = true;
+
+    fetch('/api/run-analysis', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayAnalysisResults(data);
+            triggerAlert('Analysis completed successfully!', 'success');
+        } else {
+            triggerAlert('Analysis failed: ' + data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        triggerAlert('Analysis failed: ' + error, 'danger');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function displayAnalysisResults(data) {
+    const container = document.getElementById('analysisResults');
+    
+    let html = `
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-check-circle"></i> AI Analysis Complete</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-robot"></i> Analyzed <strong>${data.tickets_analyzed}</strong> tickets in real-time
+                    <br><small>Analysis ID: ${data.analysis_id}</small>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header"><h6>Sentiment Analysis</h6></div>
+                            <div class="card-body">
+                                <canvas id="sentimentChart" width="200" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header"><h6>Priority Distribution</h6></div>
+                            <div class="card-body">
+                                <canvas id="priorityChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5>AI Insights</h5>
+    `;
+    
+    if (data.insights && data.insights.length > 0) {
+        data.insights.forEach(insight => {
+            const alertType = insight.type === 'critical' ? 'danger' : 
+                             insight.type === 'warning' ? 'warning' : 'info';
+            html += `
+                <div class="alert alert-${alertType}">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>${insight.title}</strong><br>
+                            ${insight.description}
+                        </div>
+                        <span class="badge bg-${getPriorityBadgeClass(insight.priority)}">${insight.priority}</span>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html += `<p class="text-muted">No significant insights detected.</p>`;
+    }
+    
+    html += `
+                </div>
+                
+                <div class="mt-3">
+                    <h5>Recommendations</h5>
+                    <div class="list-group">
+    `;
+    
+    if (data.recommendations && data.recommendations.length > 0) {
+        data.recommendations.forEach(rec => {
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${rec.action}</h6>
+                        <span class="badge bg-${getTimelineBadgeClass(rec.timeline)}">${rec.timeline}</span>
+                    </div>
+                    <p class="mb-1">${rec.description}</p>
+                    <small>Impact: ${rec.impact} | Effort: ${rec.effort}</small>
+                </div>
+            `;
+        });
+    }
+    
+    html += `
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    container.style.display = 'block';
+    
+    // Initialize charts
+    initializeCharts(data);
+}
+
+function initializeCharts(data) {
+    // Sentiment Chart
+    const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [
+                    data.trends.sentiment_trend?.positive || 0,
+                    data.trends.sentiment_trend?.neutral || 0,
+                    data.trends.sentiment_trend?.negative || 0
+                ],
+                backgroundColor: ['#198754', '#0dcaf0', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+    
+    // Priority Chart
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    const priorityData = data.trends.priority_distribution || {};
+    new Chart(priorityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Critical', 'High', 'Medium', 'Low'],
+            datasets: [{
+                label: 'Tickets',
+                data: [
+                    priorityData.Critical || 0,
+                    priorityData.High || 0,
+                    priorityData.Medium || 0,
+                    priorityData.Low || 0
+                ],
+                backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#198754']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function refreshLiveData() {
+    const button = document.getElementById('refreshDataBtn');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    button.disabled = true;
+    
+    loadLiveData();
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 1000);
+}
+
+function triggerAlert(message, type) {
+    const alertsPanel = document.getElementById('alertsPanel');
+    const alertsBody = document.getElementById('alertsBody');
+    
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    alertsBody.innerHTML = alertHtml + alertsBody.innerHTML;
+    alertsPanel.style.display = 'block';
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (alertsBody.children.length > 0) {
+            alertsBody.removeChild(alertsBody.children[0]);
+        }
+        if (alertsBody.children.length === 0) {
+            alertsPanel.style.display = 'none';
+        }
+    }, 10000);
+}
+
+// Utility functions
+function getPriorityClass(priority) {
+    const classes = {
+        'Critical': 'bg-danger',
+        'High': 'bg-warning',
+        'Medium': 'bg-info',
+        'Low': 'bg-success'
+    };
+    return classes[priority] || 'bg-secondary';
+}
+
+function getPriorityBadgeClass(priority) {
+    const classes = {
+        'Critical': 'danger',
+        'High': 'warning',
+        'Medium': 'info',
+        'Low': 'success'
+    };
+    return classes[priority] || 'secondary';
+}
+
+function getTrendBadgeClass(trend) {
+    const classes = {
+        'Improving': 'success',
+        'Deteriorating': 'danger',
+        'Stable': 'info'
+    };
+    return classes[trend] || 'secondary';
+}
+
+function getTimelineBadgeClass(timeline) {
+    if (timeline.includes('hour')) return 'danger';
+    if (timeline.includes('24')) return 'warning';
+    return 'info';
+}
+
+function getTimeAgo(timestamp) {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffMs = now - past;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+}
+</script>
+
+<style>
+.blink {
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.ticket-row:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+</style>
+{% endblock %}

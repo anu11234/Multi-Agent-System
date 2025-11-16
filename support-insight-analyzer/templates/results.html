@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - Support Insight Analyzer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-check-circle"></i> Analysis Complete
+                </h1>
+                <p class="card-text">Multi-agent analysis results for your support tickets</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Summary -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-info-circle"></i> Analysis Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3 class="text-primary" id="ticketsAnalyzed">-</h3>
+                            <p>Tickets Analyzed</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3 class="text-success" id="positiveSentiment">-</h3>
+                            <p>Positive Sentiment</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3 class="text-danger" id="negativeSentiment">-</h3>
+                            <p>Negative Sentiment</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3 class="text-warning" id="keyInsights">-</h3>
+                            <p>Key Insights</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sentiment Analysis -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="fas fa-smile"></i> Customer Sentiment Analysis</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="sentimentChart" width="300" height="300"></canvas>
+                <div class="mt-3 text-center">
+                    <span class="badge bg-success mx-1" id="positiveBadge">Positive: -</span>
+                    <span class="badge bg-info mx-1" id="neutralBadge">Neutral: -</span>
+                    <span class="badge bg-danger mx-1" id="negativeBadge">Negative: -</span>
+                </div>
+                <div class="mt-2 text-center">
+                    <small class="text-muted" id="sentimentScore">Average Sentiment Score: -</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Trends -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Category Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Priority Analysis -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-triangle"></i> Priority & Urgency Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <h3 id="criticalTickets">-</h3>
+                                <p>Critical Tickets</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h3 id="highTickets">-</h3>
+                                <p>High Priority</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h3 id="mediumTickets">-</h3>
+                                <p>Medium Priority</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h3 id="urgencyScore">-</h3>
+                                <p>Urgency Score</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Insights -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5><i class="fas fa-lightbulb"></i> Key Insights & Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div id="insightsContainer">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading insights...</span>
+                        </div>
+                        <p class="mt-2">Loading insights...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-list-check"></i> Actionable Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div id="recommendationsContainer">
+                    <div class="text-center">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading recommendations...</span>
+                        </div>
+                        <p class="mt-2">Loading recommendations...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('real_time_analysis') }}" class="btn btn-primary me-2">
+            <i class="fas fa-sync"></i> Run New Analysis
+        </a>
+        <a href="{{ url_for('historical_trends') }}" class="btn btn-info me-2">
+            <i class="fas fa-history"></i> View Historical Trends
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Get analysis ID from URL or use the latest
+const urlParams = new URLSearchParams(window.location.search);
+const analysisId = urlParams.get('id') || 'latest';
+
+// Load analysis results
+function loadAnalysisResults() {
+    fetch(`/api/analysis/${analysisId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Analysis not found');
+            }
+            return response.json();
+        })
+        .then(analysis => {
+            displayAnalysisResults(analysis);
+        })
+        .catch(error => {
+            console.error('Error loading analysis:', error);
+            document.body.innerHTML = `
+                <div class="alert alert-danger">
+                    <h4>Error Loading Analysis</h4>
+                    <p>Could not load the requested analysis. Please try running a new analysis.</p>
+                    <a href="{{ url_for('real_time_analysis') }}" class="btn btn-primary">Run New Analysis</a>
+                </div>
+            `;
+        });
+}
+
+function displayAnalysisResults(analysis) {
+    // Update summary statistics
+    document.getElementById('ticketsAnalyzed').textContent = analysis.tickets_analyzed;
+    document.getElementById('positiveSentiment').textContent = analysis.sentiment_analysis.total_positive;
+    document.getElementById('negativeSentiment').textContent = analysis.sentiment_analysis.total_negative;
+    document.getElementById('keyInsights').textContent = analysis.key_insights ? analysis.key_insights.length : 0;
+
+    // Update sentiment badges
+    document.getElementById('positiveBadge').textContent = `Positive: ${analysis.sentiment_analysis.total_positive}`;
+    document.getElementById('neutralBadge').textContent = `Neutral: ${analysis.sentiment_analysis.total_neutral}`;
+    document.getElementById('negativeBadge').textContent = `Negative: ${analysis.sentiment_analysis.total_negative}`;
+    document.getElementById('sentimentScore').textContent = `Average Sentiment Score: ${analysis.sentiment_analysis.average_score}`;
+
+    // Update priority analysis
+    document.getElementById('criticalTickets').textContent = analysis.priority_analysis.priority_distribution.Critical || 0;
+    document.getElementById('highTickets').textContent = analysis.priority_analysis.priority_distribution.High || 0;
+    document.getElementById('mediumTickets').textContent = analysis.priority_analysis.priority_distribution.Medium || 0;
+    document.getElementById('urgencyScore').textContent = analysis.priority_analysis.urgency_score;
+
+    // Initialize charts
+    initializeSentimentChart(analysis.sentiment_analysis);
+    initializeCategoryChart(analysis.trend_analysis);
+    
+    // Display insights and recommendations
+    displayInsights(analysis.key_insights);
+    displayRecommendations(analysis.recommendations);
+}
+
+function initializeSentimentChart(sentimentData) {
+    const ctx = document.getElementById('sentimentChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [
+                    sentimentData.total_positive,
+                    sentimentData.total_neutral,
+                    sentimentData.total_negative
+                ],
+                backgroundColor: ['#198754', '#0dcaf0', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initializeCategoryChart(trendsData) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categories = Object.keys(trendsData.category_trends);
+    const counts = Object.values(trendsData.category_trends);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: categories,
+            datasets: [{
+                label: 'Tickets by Category',
+                data: counts,
+                backgroundColor: [
+                    '#0d6efd', '#6610f2', '#6f42c1', '#d63384',
+                    '#dc3545', '#fd7e14', '#ffc107', '#198754'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function displayInsights(insights) {
+    const container = document.getElementById('insightsContainer');
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No significant insights detected in this analysis period.
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    insights.forEach(insight => {
+        const alertType = insight.type === 'critical' ? 'danger' : 
+                         insight.type === 'warning' ? 'warning' : 
+                         insight.type === 'success' ? 'success' : 'info';
+        
+        html += `
+            <div class="alert alert-${alertType} insight-${insight.type}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="alert-heading">
+                            <i class="fas fa-${getInsightIcon(insight.type)}"></i>
+                            ${insight.title}
+                        </h6>
+                        <p class="mb-1">${insight.description}</p>
+                    </div>
+                    <span class="badge bg-${getPriorityBadgeColor(insight.priority)}">
+                        ${insight.priority} Priority
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function displayRecommendations(recommendations) {
+    const container = document.getElementById('recommendationsContainer');
+    
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No specific recommendations for this analysis.
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="list-group">';
+    recommendations.forEach(rec => {
+        html += `
+            <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <h6 class="mb-1">${rec.action}</h6>
+                    <span class="badge bg-${getTimelineBadgeColor(rec.timeline)}">${rec.timeline}</span>
+                </div>
+                <p class="mb-1">${rec.description}</p>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+// Helper functions
+function getInsightIcon(type) {
+    const icons = {
+        'critical': 'exclamation-triangle',
+        'warning': 'exclamation-circle',
+        'info': 'info-circle',
+        'success': 'check-circle'
+    };
+    return icons[type] || 'info-circle';
+}
+
+function getPriorityBadgeColor(priority) {
+    const colors = {
+        'Critical': 'danger',
+        'High': 'warning',
+        'Medium': 'info',
+        'Low': 'success'
+    };
+    return colors[priority] || 'secondary';
+}
+
+function getTimelineBadgeColor(timeline) {
+    if (timeline.includes('24 hours')) return 'danger';
+    if (timeline.includes('week')) return 'warning';
+    if (timeline.includes('month')) return 'info';
+    return 'secondary';
+}
+
+// Load results when page loads
+document.addEventListener('DOMContentLoaded', loadAnalysisResults);
+</script>
+
+<style>
+.insight-critical {
+    border-left: 4px solid #dc3545;
+}
+
+.insight-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.insight-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.insight-success {
+    border-left: 4px solid #198754;
+}
+
+.stat-card {
+    padding: 1rem;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-weight: 700;
+}
+</style>
+{% endblock %}

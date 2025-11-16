@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-brain"></i> SUPPORT INSIGHT ANALYZER - ENTERPRISE AI AGENT
+                </h1>
+                <p class="card-text">Multi-Agent System for Customer Support Intelligence</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><h5>System Status</h5></div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3"><div class="alert alert-success">✅ Environment configured successfully!</div></div>
+                    <div class="col-md-3"><div class="alert alert-success">✅ Genini Agent Ready</div></div>
+                    <div class="col-md-3"><div class="alert alert-success">✅ Local memory: Ready</div></div>
+                    <div class="col-md-3"><div class="alert alert-success">✅ Multi-Agent System: Ready</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning"><h5>1. Real-time Ticket Analysis</h5></div>
+            <div class="card-body">
+                <p>Run complete multi-agent pipeline to analyze recent support tickets.</p>
+                <a href="/real-time-analysis" class="btn btn-warning">Start Analysis</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info"><h5>2. Historical Trends Dashboard</h5></div>
+            <div class="card-body">
+                <p>View past analysis results and compare trends over time.</p>
+                <a href="/historical-trends" class="btn btn-info">View Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
